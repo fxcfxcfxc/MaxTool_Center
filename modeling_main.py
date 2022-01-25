@@ -23,6 +23,8 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         #self.creat_connect()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
+
+
     def select_path(self):
         directory = os.path.dirname(self.path_line.text())
         if not os.path.exists(directory):
@@ -259,10 +261,45 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
                 obj.material.k_test = 0.0
             rt.redrawViews()
 
+    def save_select(self):
+        maxfile_name = rt.maxFileName
+        maxfile_path = rt.maxFilePath
+        print(maxfile_path + maxfile_name)
+        select_maxfile = maxfile_name.replace('.max', '')  # replace方法来进行字符串的删除
+        rt.saveNodes(rt.selection,maxfile_path + select_maxfile + "_select.max")
+        os.startfile(maxfile_path)
+
+
+    def save_backup(self):
+        maxfile_name = rt.maxFileName
+        maxfile_path = rt.maxFilePath
+        print(maxfile_path+maxfile_name)
+        backup_maxfile = maxfile_name.replace('.max','') #replace方法来进行字符串的删除
+        rt.saveMaxFile(maxfile_path + backup_maxfile + "_backup.max",useNewFile = False)#传入参数false来防止max保存
+
+    def open_maxfile_dir(self):
+        maxfile_path = rt.maxFilePath
+        os.startfile(maxfile_path)
+
+
+
+
     def initUI(self):
         main_layout = QtWidgets.QVBoxLayout()
 
-        vertexpaint2 = QtWidgets.QPushButton('vertexpaint')
+        open_maxfile_but = QtWidgets.QPushButton("打开项目文件夹")
+        open_maxfile_but.clicked.connect(self.open_maxfile_dir)
+        main_layout.addWidget(open_maxfile_but)
+
+        save_backup_but = QtWidgets.QPushButton('同目录保存备份_backup.max')
+        save_backup_but.clicked.connect(self.save_backup)
+        main_layout.addWidget(save_backup_but)
+
+        save_select_maxfile_but = QtWidgets.QPushButton("保存选中模型为_select.max")
+        save_select_maxfile_but.clicked.connect(self.save_select)
+        main_layout.addWidget(save_select_maxfile_but)
+
+        vertexpaint2 = QtWidgets.QPushButton('vertexpaint打开顶点绘画')
         vertexpaint2.clicked.connect(self.add_vertexpaint_mod)
         main_layout.addWidget(vertexpaint2)
 
