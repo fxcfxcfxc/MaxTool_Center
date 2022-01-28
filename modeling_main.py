@@ -321,7 +321,7 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.cylinder_btn.clicked.connect(self.creat_cylinder)
 
         #mesh-物体
-        self.label = QtWidgets.QLabel("Mesh-物体")
+        self.poly_label = QtWidgets.QLabel("Mesh-物体")
         self.editpoly_btn = QtWidgets.QPushButton("Editablepoly")
         self.editpoly_btn.clicked.connect(self.make_editpoly)
 
@@ -428,12 +428,12 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.main_layout.addWidget(self.open_maxfile_but)
         self.main_layout.addWidget(self.save_backup_but)
         self.main_layout.addWidget(self.save_select_maxfile_but)
-        self.main_layout.addWidget(self.vertexpaint2)
         self.main_layout.addWidget(self.radioZ)
         self.main_layout.addWidget(self.radioR)
         self.main_layout.addWidget(self.radioG)
         self.main_layout.addWidget(self.radioB)
         self.main_layout.addWidget(self.radioA)
+        self.main_layout.addWidget(self.vertexpaint2)
 
         self.main_layout.addWidget(self.label_Creat)
         self.plane_layout = QtWidgets.QHBoxLayout()
@@ -444,8 +444,9 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.sphere_layout = QtWidgets.QHBoxLayout()
         self.sphere_layout.addWidget(self.sphere_btn)
         self.sphere_layout.addWidget(self.cylinder_btn)
-        self.main_layout.addWidget(self.label)
+        self.main_layout.addLayout(self.sphere_layout)
 
+        self.main_layout.addWidget(self.poly_label)
         self.main_layout.addWidget(self.editpoly_btn)
         self.main_layout.addWidget(self.resert_btn)
         self.main_layout.addWidget(self.label_m)
