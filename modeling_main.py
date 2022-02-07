@@ -1,3 +1,4 @@
+import random
 
 from PySide2 import QtCore
 from PySide2 import QtGui
@@ -16,8 +17,7 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
     def __init__(self, parent=None):
         super(PyMaxDockWidget, self).__init__(parent)
         self.setWindowFlags(QtCore.Qt.Tool)
-        self.setWindowTitle('模型组工具')
-        #self.initUI()
+        self.setWindowTitle('3D模型组工具')
         self.creat_widgets()
         self.creat_layout()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
@@ -39,9 +39,10 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         rt.exportFile(new_path + name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
 
     def export_obj(self):
-        path = self.path_line.text()
-        name = self.name_line.text()
-        rt.exportFile(path + name, rt.name('noPrompt'), selectedOnly=True, using=rt.ObjExp)
+        objpath = self.path_line.text()
+        obj_new_path = objpath + '/'
+        obj_name = self.name_line.text()
+        rt.exportFile(obj_new_path + obj_name, rt.name('noPrompt'), selectedOnly=True, using=rt.ObjExp)
 
     def import_fast(self):
         rt.execute('max file import')
@@ -176,7 +177,7 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         with pymxs.undo(True):
             rt.execute('macros.run "Ribbon - Modeling" "GeometryCollapse"')
 
-    def make_material(self):
+    def one_material(self):
         with pymxs.undo(True):
             a = rt.selection
             m = rt.ai_Standard_Surface()
@@ -186,12 +187,14 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
 
         return
 
-    def layer_material(self):
+    def mulity_material(self):
         with pymxs.undo(True):
             a = rt.selection
             for x in a:
                 m = rt.ai_Standard_Surface()
-                m.name = x.name
+                m.name = "M_" + x.name
+                m.base_color = rt.color(random.randint(0,255),random.randint(0,255),random.randint(0,255))
+                m.specular = 0.0
                 x.material = m
             rt.redrawViews()  # 视图更新
         return
@@ -200,6 +203,12 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         with pymxs.undo(True):
             for obj in rt.selection:
                 obj.material = rt.undefined
+            rt.redrawViews()
+
+    def clear_materialColor(self):
+        with pymxs.undo(True):
+            for obj in rt.selection:
+                obj.material.base_color = rt.color(150,150,150)
             rt.redrawViews()
 
     def open_uv(self):
@@ -280,18 +289,20 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         os.startfile(maxfile_path)
 
     def creat_widgets(self):
-        self.open_maxfile_but = QtWidgets.QPushButton("打开项目文件夹")
-        self.open_maxfile_but.clicked.connect(self.open_maxfile_dir)
+        self.lab_maxfile = QtWidgets.QLabel("MaxFile")
+        self.but_open_maxfile = QtWidgets.QPushButton("打开项目文件夹")
+        self.but_open_maxfile.clicked.connect(self.open_maxfile_dir)
 
-        self.save_backup_but = QtWidgets.QPushButton('同目录保存备份_backup.max')
-        self.save_backup_but.clicked.connect(self.save_backup)
+        self.but_save_backup = QtWidgets.QPushButton('同目录保存备份_backup.max')
+        self.but_save_backup.clicked.connect(self.save_backup)
 
-        self.save_select_maxfile_but = QtWidgets.QPushButton("保存选中模型为_select.max")
-        self.save_select_maxfile_but.clicked.connect(self.save_select)
+        self.but_save_select_maxfile = QtWidgets.QPushButton("保存选中模型为_select.max")
+        self.but_save_select_maxfile.clicked.connect(self.save_select)
 
-        self.vertexpaint2 = QtWidgets.QPushButton('vertexpaint打开顶点绘画')
-        self.vertexpaint2.clicked.connect(self.add_vertexpaint_mod)
+        self.but_open_vertexpaint = QtWidgets.QPushButton('vertexpaint打开顶点绘画')
+        self.but_open_vertexpaint.clicked.connect(self.add_vertexpaint_mod)
 
+        self.lab_vertexcolor = QtWidgets.QLabel("VeterColor(顶点绘画)")
         self.radioZ = QtWidgets.QRadioButton('光照结果')
         self.radioZ.toggled.connect(self.show_channle_shader)
 
@@ -307,29 +318,29 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.radioA = QtWidgets.QRadioButton('A通道')
         self.radioA.toggled.connect(self.show_channle_a)
 
-        self.label_Creat = QtWidgets.QLabel("Creat-创建基本体Maya模式")
+        self.label_Creat = QtWidgets.QLabel("CreatMaya(Maya模式创建)")
         self.plane_btn = QtWidgets.QPushButton("plane")
         self.plane_btn.clicked.connect(self.creat_plane)
 
-        self.box_btn = QtWidgets.QPushButton("box")
-        self.box_btn.clicked.connect(self.creat_box)
+        self.but_creat_box = QtWidgets.QPushButton("box")
+        self.but_creat_box.clicked.connect(self.creat_box)
 
-        self.sphere_btn = QtWidgets.QPushButton("sphere")
-        self.sphere_btn.clicked.connect(self.creat_sphere)
+        self.but_creat_sphere = QtWidgets.QPushButton("sphere")
+        self.but_creat_sphere.clicked.connect(self.creat_sphere)
 
-        self.cylinder_btn = QtWidgets.QPushButton("cylinder")
-        self.cylinder_btn.clicked.connect(self.creat_cylinder)
+        self.but_creat_cylinder = QtWidgets.QPushButton("cylinder")
+        self.but_creat_cylinder.clicked.connect(self.creat_cylinder)
 
         #mesh-物体
-        self.poly_label = QtWidgets.QLabel("Mesh-物体")
-        self.editpoly_btn = QtWidgets.QPushButton("Editablepoly")
+        self.poly_label = QtWidgets.QLabel("Mesh(物体)")
+        self.editpoly_btn = QtWidgets.QPushButton("Editable_poly(塌陷)")
         self.editpoly_btn.clicked.connect(self.make_editpoly)
 
-        self.resert_btn = QtWidgets.QPushButton("Resert xform")
+        self.resert_btn = QtWidgets.QPushButton("Resert_xform(重置变换)")
         self.resert_btn.clicked.connect(self.resert)
 
         #Modeling-建模
-        self.label_m = QtWidgets.QLabel("Modeling-建模")
+        self.label_m = QtWidgets.QLabel("Modeling(建模)")
 
         self.remove_btn = QtWidgets.QPushButton("Remove")
         self.remove_btn.clicked.connect(self.remove)
@@ -353,7 +364,7 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.Collapse_btn.clicked.connect(self.collapse)
 
         #PIVOT-轴
-        self.Tr_label = QtWidgets.QLabel("Pivot-轴")
+        self.Tr_label = QtWidgets.QLabel("Pivot(轴)")
 
         self.bt_cenceterObj = QtWidgets.QPushButton(" To Center")
         self.bt_cenceterObj.clicked.connect(self.cencter_select)
@@ -361,7 +372,7 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.bt_world = QtWidgets.QPushButton("To world[0,0,0]")
         self.bt_world.clicked.connect(self.world_select)
 
-        self.smoothing_lb = QtWidgets.QLabel("Smoothing-光滑组")
+        self.smoothing_lb = QtWidgets.QLabel("Smoothing(光滑组)")
 
         self.smoothing_btn = QtWidgets.QPushButton("一键光滑组")
         self.smoothing_btn.clicked.connect(self.smmothing)
@@ -370,27 +381,30 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.smoothing_plane_btn.clicked.connect(self.smmothing_makeplane)
 
         #Material-材质
-        self.label_m = QtWidgets.QLabel("Material-材质")
-        self.material_btn = QtWidgets.QPushButton("统一材质")
-        self.material_btn.clicked.connect(self.make_material)
+        self.label_material = QtWidgets.QLabel("Material(材质)")
+        self.but_oneMaterial = QtWidgets.QPushButton("单一材质")
+        self.but_oneMaterial.clicked.connect(self.one_material)
 
-        self.layermaterial_btn = QtWidgets.QPushButton("多个材质(自动匹配物体名称)")
-        self.layermaterial_btn.clicked.connect(self.layer_material)
+        self.but_mulity_material = QtWidgets.QPushButton("复合材质(M_name)")
+        self.but_mulity_material.clicked.connect(self.mulity_material)
 
-        self.materialclear_btn = QtWidgets.QPushButton("清除选择物体材质")
-        self.materialclear_btn.clicked.connect(self.clear_material)
+        self.but_clearn_material = QtWidgets.QPushButton("清除材质")
+        self.but_clearn_material.clicked.connect(self.clear_material)
 
-        self.label2 = QtWidgets.QLabel("Modifter-修改器")
+        self.but_clearn_material_diffuse = QtWidgets.QPushButton("清楚材质颜色")
+        self.but_clearn_material_diffuse.clicked.connect(self.clear_materialColor)
 
-        self.uv_btn = QtWidgets.QPushButton("UV")
+        self.label2 = QtWidgets.QLabel("UV")
+
+        self.uv_btn = QtWidgets.QPushButton("open UV")
         self.uv_btn.clicked.connect(self.open_uv)
 
-        self.label_bake = QtWidgets.QLabel("Bake-烘培")
+        self.label_bake = QtWidgets.QLabel("Bake(烘培)")
 
         self.bt_bake = QtWidgets.QPushButton('烘培')
         self.bt_bake.clicked.connect(self.bake)
 
-        self.label3 = QtWidgets.QLabel("Export-导出")
+        self.label3 = QtWidgets.QLabel("Export(导出)")
 
         self.fbxsetting_btn = QtWidgets.QPushButton("FBX输出设置........")
         self.fbxsetting_btn.clicked.connect(self.fbx_setting)
@@ -407,12 +421,12 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.export_btn2 = QtWidgets.QPushButton("导出OBJ")
         self.export_btn2.clicked.connect(self.export_obj)
 
-        self.label_import = QtWidgets.QLabel("Import-导入")
+        self.label_import = QtWidgets.QLabel("Import(导入)")
 
         self.bt_import = QtWidgets.QPushButton('导入')
         self.bt_import.clicked.connect(self.import_fast)
 
-        self.label_layer = QtWidgets.QLabel("Layer-图层")
+        self.label_layer = QtWidgets.QLabel("Layer(图层)")
 
         self.bt_high = QtWidgets.QPushButton('High_layer')
         self.bt_high.clicked.connect(self.layer_high)
@@ -425,48 +439,66 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
 
     def creat_layout(self):
         self.main_layout = QtWidgets.QVBoxLayout()
-        self.main_layout.addWidget(self.open_maxfile_but)
-        self.main_layout.addWidget(self.save_backup_but)
-        self.main_layout.addWidget(self.save_select_maxfile_but)
+        self.main_layout.addWidget(self.lab_maxfile)
+        self.main_layout.addWidget(self.but_open_maxfile)
+        self.main_layout.addWidget(self.but_save_backup)
+        self.main_layout.addWidget(self.but_save_select_maxfile)
+        self.main_layout.addWidget(self.lab_vertexcolor)
         self.main_layout.addWidget(self.radioZ)
-        self.main_layout.addWidget(self.radioR)
-        self.main_layout.addWidget(self.radioG)
-        self.main_layout.addWidget(self.radioB)
-        self.main_layout.addWidget(self.radioA)
-        self.main_layout.addWidget(self.vertexpaint2)
+
+        self.qhbox_rgba = QtWidgets.QHBoxLayout()
+        self.qhbox_rgba.addWidget(self.radioR)
+        self.qhbox_rgba.addWidget(self.radioG)
+        self.qhbox_rgba.addWidget(self.radioB)
+        self.qhbox_rgba.addWidget(self.radioA)
+        self.main_layout.addLayout(self.qhbox_rgba)
+
+        self.main_layout.addWidget(self.but_open_vertexpaint)
 
         self.main_layout.addWidget(self.label_Creat)
         self.plane_layout = QtWidgets.QHBoxLayout()
         self.plane_layout.addWidget(self.plane_btn)
-        self.plane_layout.addWidget(self.box_btn)
+        self.plane_layout.addWidget(self.but_creat_box)
         self.main_layout.addLayout(self.plane_layout)
 
         self.sphere_layout = QtWidgets.QHBoxLayout()
-        self.sphere_layout.addWidget(self.sphere_btn)
-        self.sphere_layout.addWidget(self.cylinder_btn)
+        self.sphere_layout.addWidget(self.but_creat_sphere)
+        self.sphere_layout.addWidget(self.but_creat_cylinder)
         self.main_layout.addLayout(self.sphere_layout)
 
         self.main_layout.addWidget(self.poly_label)
         self.main_layout.addWidget(self.editpoly_btn)
         self.main_layout.addWidget(self.resert_btn)
         self.main_layout.addWidget(self.label_m)
-        self.main_layout.addWidget(self.remove_btn)
-        self.main_layout.addWidget(self.cut_btn)
-        self.main_layout.addWidget(self.inset_btn)
-        self.main_layout.addWidget(self.Bevel_btn)
-        self.main_layout.addWidget(self.SwiftLoop_btn)
-        self.main_layout.addWidget(self.TargetWeld_btn)
-        self.main_layout.addWidget(self.Collapse_btn)
+
+        self.qhbox_modeling_a = QtWidgets.QGridLayout()
+        self.qhbox_modeling_a.addWidget(self.remove_btn,0,0)
+        self.qhbox_modeling_a.addWidget(self.cut_btn,0,1)
+        self.qhbox_modeling_a.addWidget(self.inset_btn,1,0)
+        self.qhbox_modeling_a.addWidget(self.Bevel_btn,1,1)
+        self.qhbox_modeling_a.addWidget(self.SwiftLoop_btn,2,0)
+        self.qhbox_modeling_a.addWidget(self.TargetWeld_btn,2,1)
+        self.qhbox_modeling_a.addWidget(self.Collapse_btn,3,0)
+        self.main_layout.addLayout(self.qhbox_modeling_a)
+
         self.main_layout.addWidget(self.Tr_label)
         self.main_layout.addWidget(self.bt_cenceterObj)
         self.main_layout.addWidget(self.bt_world)
         self.main_layout.addWidget(self.smoothing_lb)
         self.main_layout.addWidget(self.smoothing_btn)
         self.main_layout.addWidget(self.smoothing_plane_btn)
-        self.main_layout.addWidget(self.label_m)
-        self.main_layout.addWidget(self.material_btn)
-        self.main_layout.addWidget(self.layermaterial_btn)
-        self.main_layout.addWidget(self.materialclear_btn)
+        self.main_layout.addWidget(self.label_material)
+
+        self.material_hbox_a = QtWidgets.QHBoxLayout()
+        self.material_hbox_a.addWidget(self.but_oneMaterial)
+        self.material_hbox_a.addWidget(self.but_mulity_material)
+        self.main_layout.addLayout(self.material_hbox_a)
+
+        self.material_hbox_b = QtWidgets.QHBoxLayout()
+        self.material_hbox_b.addWidget(self.but_clearn_material)
+        self.material_hbox_b.addWidget(self.but_clearn_material_diffuse)
+        self.main_layout.addLayout(self.material_hbox_b)
+
         self.main_layout.addWidget(self.label2)
         self.main_layout.addWidget(self.uv_btn)
         self.main_layout.addWidget(self.label_bake)
@@ -499,226 +531,8 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.widget = QtWidgets.QWidget()
         self.widget.setLayout(self.main_layout)
         self.setWidget(self.widget)
-        self.resize(250, 600)
-    '''
-    def initUI(self):
-        main_layout = QtWidgets.QVBoxLayout()
+        self.resize(300, 600)
 
-        open_maxfile_but = QtWidgets.QPushButton("打开项目文件夹")
-        open_maxfile_but.clicked.connect(self.open_maxfile_dir)
-        main_layout.addWidget(open_maxfile_but)
-
-        save_backup_but = QtWidgets.QPushButton('同目录保存备份_backup.max')
-        save_backup_but.clicked.connect(self.save_backup)
-        main_layout.addWidget(save_backup_but)
-
-        save_select_maxfile_but = QtWidgets.QPushButton("保存选中模型为_select.max")
-        save_select_maxfile_but.clicked.connect(self.save_select)
-        main_layout.addWidget(save_select_maxfile_but)
-
-        vertexpaint2 = QtWidgets.QPushButton('vertexpaint打开顶点绘画')
-        vertexpaint2.clicked.connect(self.add_vertexpaint_mod)
-        main_layout.addWidget(vertexpaint2)
-
-        radioZ = QtWidgets.QRadioButton('光照结果')
-        radioZ.toggled.connect(self.show_channle_shader)
-        main_layout.addWidget(radioZ)
-
-        radioR = QtWidgets.QRadioButton('R通道')
-        radioR.toggled.connect(self.show_channle_r)
-        main_layout.addWidget(radioR)
-
-        radioG = QtWidgets.QRadioButton('G通道')
-        radioG.toggled.connect(self.show_channle_g)
-        main_layout.addWidget(radioG)
-
-        radioB = QtWidgets.QRadioButton('B通道')
-        radioB.toggled.connect(self.show_channle_b)
-        main_layout.addWidget(radioB)
-
-        radioA = QtWidgets.QRadioButton('A通道')
-        radioA.toggled.connect(self.show_channle_a)
-        main_layout.addWidget(radioA)
-
-        label_Creat = QtWidgets.QLabel("Creat-创建基本体Maya模式")
-        main_layout.addWidget(label_Creat)
-        #
-        plane_layout = QtWidgets.QHBoxLayout()
-        plane_btn = QtWidgets.QPushButton("plane")
-        plane_btn.clicked.connect(self.creat_plane)
-        plane_layout.addWidget(plane_btn)
-
-        box_btn = QtWidgets.QPushButton("box")
-        box_btn.clicked.connect(self.creat_box)
-        plane_layout.addWidget(box_btn)
-
-        main_layout.addLayout(plane_layout)
-        #
-        sphere_layout = QtWidgets.QHBoxLayout()
-        sphere_btn = QtWidgets.QPushButton("sphere")
-        sphere_btn.clicked.connect(self.creat_sphere)
-        sphere_layout.addWidget(sphere_btn)
-
-        cylinder_btn = QtWidgets.QPushButton("cylinder")
-        cylinder_btn.clicked.connect(self.creat_cylinder)
-        sphere_layout.addWidget(cylinder_btn)
-
-        main_layout.addLayout(sphere_layout)
-        #
-        label = QtWidgets.QLabel("Mesh-物体")
-        main_layout.addWidget(label)
-
-        editpoly_btn = QtWidgets.QPushButton("Editablepoly")
-        editpoly_btn.clicked.connect(self.make_editpoly)
-        main_layout.addWidget(editpoly_btn)
-
-        resert_btn = QtWidgets.QPushButton("Resert xform")
-        resert_btn.clicked.connect(self.resert)
-        main_layout.addWidget(resert_btn)
-
-        label_m = QtWidgets.QLabel("Modeling-建模")
-        main_layout.addWidget(label_m)
-
-        remove_btn = QtWidgets.QPushButton("Remove")
-        remove_btn.clicked.connect(self.remove)
-        main_layout.addWidget(remove_btn)
-
-        cut_btn = QtWidgets.QPushButton("Cut")
-        cut_btn.clicked.connect(self.cut)
-        main_layout.addWidget(cut_btn)
-
-        inset_btn = QtWidgets.QPushButton("inset")
-        inset_btn.clicked.connect(self.inset)
-        main_layout.addWidget(inset_btn)
-
-        Bevel_btn = QtWidgets.QPushButton("bevel")
-        Bevel_btn.clicked.connect(self.bevel)
-        main_layout.addWidget(Bevel_btn)
-
-        SwiftLoop_btn = QtWidgets.QPushButton("EdgeLoop")
-        SwiftLoop_btn.clicked.connect(self.swiftloop)
-        main_layout.addWidget(SwiftLoop_btn)
-
-        TargetWeld_btn = QtWidgets.QPushButton("targetweld")
-        TargetWeld_btn.clicked.connect(self.targetweld)
-        main_layout.addWidget(TargetWeld_btn)
-
-        Collapse_btn = QtWidgets.QPushButton("collapse")
-        Collapse_btn.clicked.connect(self.collapse)
-        main_layout.addWidget(Collapse_btn)
-
-        Tr_label = QtWidgets.QLabel("Pivot-轴")
-        main_layout.addWidget(Tr_label)
-
-        bt_cenceterObj = QtWidgets.QPushButton(" To Center")
-        bt_cenceterObj.clicked.connect(self.cencter_select)
-        main_layout.addWidget(bt_cenceterObj)
-
-        bt_world = QtWidgets.QPushButton("To world[0,0,0]")
-        bt_world.clicked.connect(self.world_select)
-        main_layout.addWidget(bt_world)
-
-        smoothing_lb = QtWidgets.QLabel("Smoothing-光滑组")
-        main_layout.addWidget(smoothing_lb)
-
-        smoothing_btn = QtWidgets.QPushButton("一键光滑组")
-        smoothing_btn.clicked.connect(self.smmothing)
-        main_layout.addWidget(smoothing_btn)
-
-        smoothing_plane_btn = QtWidgets.QPushButton("打平面+光滑组")
-        smoothing_plane_btn.clicked.connect(self.smmothing_makeplane)
-        main_layout.addWidget(smoothing_plane_btn)
-
-        #
-        label_m = QtWidgets.QLabel("Material-材质")
-        main_layout.addWidget(label_m)
-
-        material_btn = QtWidgets.QPushButton("统一材质")
-        material_btn.clicked.connect(self.make_material)
-        main_layout.addWidget(material_btn)
-
-        layermaterial_btn = QtWidgets.QPushButton("多个材质(自动匹配物体名称)")
-        layermaterial_btn.clicked.connect(self.layer_material)
-        main_layout.addWidget(layermaterial_btn)
-
-        materialclear_btn = QtWidgets.QPushButton("清除选择物体材质")
-        materialclear_btn.clicked.connect(self.clear_material)
-        main_layout.addWidget(materialclear_btn)
-        #
-        label2 = QtWidgets.QLabel("Modifter-修改器")
-        main_layout.addWidget(label2)
-
-        uv_btn = QtWidgets.QPushButton("UV")
-        uv_btn.clicked.connect(self.open_uv)
-        main_layout.addWidget(uv_btn)
-
-        label_bake = QtWidgets.QLabel("Bake-烘培")
-        main_layout.addWidget(label_bake)
-
-        bt_bake = QtWidgets.QPushButton('烘培')
-        bt_bake.clicked.connect(self.bake)
-        main_layout.addWidget(bt_bake)
-        #
-        label3 = QtWidgets.QLabel("Export-导出")
-        main_layout.addWidget(label3)
-
-        self.fbxsetting_btn = QtWidgets.QPushButton("FBX输出设置........")
-        self.fbxsetting_btn.clicked.connect(self.fbx_setting)
-        main_layout.addWidget(self.fbxsetting_btn)
-        #
-        self.main_layout2 = QtWidgets.QHBoxLayout()
-        self.selectpath_btn = QtWidgets.QPushButton("选择路径........")
-        self.selectpath_btn.clicked.connect(self.select_path)
-        main_layout.addWidget(self.selectpath_btn)
-        #
-        self.path_line = QtWidgets.QLineEdit()
-        self.main_layout2.addWidget(self.path_line)
-        self.name_line = QtWidgets.QLineEdit()
-        self.main_layout2.addWidget(self.name_line)
-        #
-        self.main_layout2.setStretch(0, 3)
-        self.main_layout2.setStretch(1, 1)
-
-        main_layout.addLayout(self.main_layout2)
-
-        export_btn = QtWidgets.QPushButton("导出FBX")
-        export_btn.clicked.connect(self.export_fbx)
-        main_layout.addWidget(export_btn)
-        export_btn2 = QtWidgets.QPushButton("导出OBJ")
-        export_btn2.clicked.connect(self.export_obj)
-        main_layout.addWidget(export_btn2)
-
-        label_import = QtWidgets.QLabel("Import-导入")
-        main_layout.addWidget(label_import)
-
-        bt_import = QtWidgets.QPushButton('导入')
-        bt_import.clicked.connect(self.import_fast)
-        main_layout.addWidget(bt_import)
-
-        label_layer = QtWidgets.QLabel("Layer-图层")
-        main_layout.addWidget(label_layer)
-
-        layerscence_layout = QtWidgets.QHBoxLayout()
-        bt_high = QtWidgets.QPushButton('High_layer')
-        bt_high.clicked.connect(self.layer_high)
-        layerscence_layout.addWidget(bt_high)
-
-        bt_low = QtWidgets.QPushButton('low_layer')
-        bt_low.clicked.connect(self.layer_low)
-        layerscence_layout.addWidget(bt_low)
-
-        main_layout.addLayout(layerscence_layout)
-
-        del_low = QtWidgets.QPushButton('clean empty layer')
-        del_low.clicked.connect(self.detel_layer)
-        main_layout.addWidget(del_low)
-
-        widget = QtWidgets.QWidget()
-        widget.setLayout(main_layout)
-        self.setWidget(widget)
-        self.resize(250, 600)
-        
-    '''
 
 
 def main():
@@ -726,6 +540,11 @@ def main():
     w = PyMaxDockWidget(parent=main_window)
     w.setFloating(True)
     w.show()
+
+    with open("style.qss","r") as f:
+        _style = f.read()
+        w.setStyleSheet(_style)
+
 
 
 if __name__ == '__main__':
