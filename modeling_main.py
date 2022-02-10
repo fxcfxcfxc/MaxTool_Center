@@ -1,5 +1,4 @@
 import random
-
 from PySide2 import QtCore
 from PySide2 import QtGui
 from PySide2 import QtWidgets
@@ -13,14 +12,18 @@ import pymxs
     pymxs+pyside2
 '''
 
+
+#继承QDockWidget类，提供了一种叫做工具面板，它可以是被锁在QMainWindow窗口内部或者是作为顶级窗口悬浮在桌面上
 class PyMaxDockWidget(QtWidgets.QDockWidget):
+    #传入构造函数参数
+    #新式类的写法：super(子类，self).__init__(参数1，参数2，....)
     def __init__(self, parent=None):
-        super(PyMaxDockWidget, self).__init__(parent)
-        self.setWindowFlags(QtCore.Qt.Tool)
-        self.setWindowTitle('3D模型组工具')
+        super(PyMaxDockWidget, self).__init__(parent)#继承父类的构造函数
+        self.setWindowFlags(QtCore.Qt.Tool)#将某一子窗口设置为最顶层窗口
+        self.setWindowTitle('技术中心_3D组综合工具v1.0')
         self.creat_widgets()
         self.creat_layout()
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)#关闭窗口时删掉实例化的类
 
 
 
@@ -36,13 +39,21 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         old_path = self.path_line.text()
         new_path = old_path + '/'
         name = self.name_line.text()
-        rt.exportFile(new_path + name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
+
+        if(len(rt.selection)):
+            rt.exportFile(new_path + name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
+        else:
+            rt.messageBox("没有选择物体")
 
     def export_obj(self):
         objpath = self.path_line.text()
         obj_new_path = objpath + '/'
         obj_name = self.name_line.text()
-        rt.exportFile(obj_new_path + obj_name, rt.name('noPrompt'), selectedOnly=True, using=rt.ObjExp)
+
+        if(len(rt.selection)):
+            rt.exportFile(obj_new_path + obj_name, rt.name('noPrompt'), selectedOnly=True, using=rt.ObjExp)
+        else:
+            rt.messageBox("没有选择物体")
 
     def import_fast(self):
         rt.execute('max file import')
@@ -226,6 +237,8 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         uv = rt.VertexPaint()
         for x in a:
             rt.addModifier(x, uv)
+        rt.setCommandPanelTaskMode(rt.name('create'))
+        rt.setCommandPanelTaskMode(rt.name('modify'))
         rt.redrawViews()
 
     def fbx_setting(self):
@@ -289,17 +302,17 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         os.startfile(maxfile_path)
 
     def creat_widgets(self):
-        self.lab_maxfile = QtWidgets.QLabel("MaxFile")
+        self.lab_maxfile = QtWidgets.QLabel("MaxFile(文件)")
         self.but_open_maxfile = QtWidgets.QPushButton("打开项目文件夹")
         self.but_open_maxfile.clicked.connect(self.open_maxfile_dir)
 
-        self.but_save_backup = QtWidgets.QPushButton('同目录保存备份_backup.max')
+        self.but_save_backup = QtWidgets.QPushButton('同目录保存备份(_backup.max)')
         self.but_save_backup.clicked.connect(self.save_backup)
 
-        self.but_save_select_maxfile = QtWidgets.QPushButton("保存选中模型为_select.max")
+        self.but_save_select_maxfile = QtWidgets.QPushButton("保存选中模型为(_select.max)")
         self.but_save_select_maxfile.clicked.connect(self.save_select)
 
-        self.but_open_vertexpaint = QtWidgets.QPushButton('vertexpaint打开顶点绘画')
+        self.but_open_vertexpaint = QtWidgets.QPushButton('打开顶点绘画')
         self.but_open_vertexpaint.clicked.connect(self.add_vertexpaint_mod)
 
         self.lab_vertexcolor = QtWidgets.QLabel("VeterColor(顶点绘画)")
@@ -528,24 +541,25 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
 
         self.main_layout.addWidget(self.del_low)
 
+        #创建Qwidget顶层类，将布局添加到对象
         self.widget = QtWidgets.QWidget()
         self.widget.setLayout(self.main_layout)
         self.setWidget(self.widget)
         self.resize(300, 600)
 
 
+if __name__ == '__main__':
+    try:
+        w.close()
+        w.deleteLater()
 
-def main():
+    except:
+        pass
     main_window = qtmax.GetQMaxMainWindow()
     w = PyMaxDockWidget(parent=main_window)
     w.setFloating(True)
     w.show()
 
-    with open("style.qss","r") as f:
+    with open("style.qss", "r") as f:
         _style = f.read()
         w.setStyleSheet(_style)
-
-
-
-if __name__ == '__main__':
-    main()
