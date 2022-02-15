@@ -25,35 +25,12 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.creat_layout()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)#关闭窗口时删掉实例化的类
 
-
-    def export_fbx_unity_envir(self):
-        old_path = self.path_line.text()
-        new_path = old_path + '/'
-        name = self.name_line.text()
-
-        obj = rt.selection
-        rotation = rt.EulerAngles(90, 0, 0)
-        rt.execute("fn r2q r = (return r as quat)")
-        for x in obj:
-            rt.setProperty(x, "pos.x", 0.0)
-            rt.setProperty(x, "pos.y", 0.0)
-            rt.setProperty(x, "pos.z", 0.0)
-
-            self.RotatePivotOnly(x, rotation)
-
-        if (len(rt.selection)):
-            rt.exportFile(new_path + name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
-        else:
-            rt.messageBox("没有选择物体")
-
-
     def RotatePivotOnly(self, obj, rotation):
         rotValInv = rt.inverse(rt.r2q(rotation))
         with pymxs.animate(False):
             obj.rotation *= rotValInv
             obj.objectoffsetpos *= rotValInv
             obj.objectoffsetrot *= rotValInv
-
 
     def select_path(self):
         directory = os.path.dirname(self.path_line.text())
@@ -62,6 +39,37 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         output_path = QtWidgets.QFileDialog.getExistingDirectory(dir=directory)
         output_path = output_path
         self.path_line.setText(output_path)
+
+    def export_fbx_unity_envir(self):
+        old_path = self.path_line.text()
+        new_path = old_path + '/'
+        name = self.name_line.text()
+
+        obj = rt.selection
+        rotation = rt.EulerAngles(90, 0, 0)
+        for x in obj:
+
+            posx = rt.getProperty(x,"pos.x")
+            posy = rt.getProperty(x,"pos.y")
+            posz = rt.getProperty(x,"pos.z")
+            rt.setProperty(x, "pos.x", 0.0)
+            rt.setProperty(x, "pos.y", 0.0)
+            rt.setProperty(x, "pos.z", 0.0)
+            self.RotatePivotOnly(x, rotation)
+
+        rt.execute("fn r2q r = (return r as quat)")
+        if (len(rt.selection)):
+            rt.exportFile(new_path + name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
+
+        else:
+            rt.messageBox("没有选择物体")
+
+        for x in obj:
+            rt.ResetXForm(x)
+            rt.convertToPoly(x)
+            rt.setProperty(x, "pos.x", posx)
+            rt.setProperty(x, "pos.y", posy)
+            rt.setProperty(x, "pos.z", posz)
 
     def export_fbx_unity_character(self):
         old_path = self.path_line.text()
@@ -387,6 +395,12 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.resert_btn = QtWidgets.QPushButton("Resert_xform(重置变换)")
         self.resert_btn.clicked.connect(self.resert)
 
+        self.bt_cenceterObj = QtWidgets.QPushButton("坐标轴---》物体中心")
+        self.bt_cenceterObj.clicked.connect(self.cencter_select)
+
+        self.bt_world = QtWidgets.QPushButton("物体---》世界中心")
+        self.bt_world.clicked.connect(self.world_select)
+
         #Modeling-建模
         self.label_m = QtWidgets.QLabel("Modeling(建模)")
 
@@ -410,15 +424,6 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
 
         self.Collapse_btn = QtWidgets.QPushButton("collapse")
         self.Collapse_btn.clicked.connect(self.collapse)
-
-        #PIVOT-轴
-        self.Tr_label = QtWidgets.QLabel("Pivot(轴)")
-
-        self.bt_cenceterObj = QtWidgets.QPushButton(" To Center")
-        self.bt_cenceterObj.clicked.connect(self.cencter_select)
-
-        self.bt_world = QtWidgets.QPushButton("To world[0,0,0]")
-        self.bt_world.clicked.connect(self.world_select)
 
         self.smoothing_lb = QtWidgets.QLabel("Smoothing(光滑组)")
 
@@ -463,11 +468,12 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.path_line = QtWidgets.QLineEdit()
         self.name_line = QtWidgets.QLineEdit()
 
-        self.btn_export_character = QtWidgets.QPushButton("Unity导出FBX(角色)")
+        self.btn_export_character = QtWidgets.QPushButton("Unity-单FBX-角色(Y上)")
         self.btn_export_character.clicked.connect(self.export_fbx_unity_character)
 
-        self.btn_export_env = QtWidgets.QPushButton("Unity导出FBX(场景)")
+        self.btn_export_env = QtWidgets.QPushButton("Unity-单FBX-场景(Y上)")
         self.btn_export_env.clicked.connect(self.export_fbx_unity_envir)
+
 
         self.export_btn2 = QtWidgets.QPushButton("导出OBJ")
         self.export_btn2.clicked.connect(self.export_obj)
@@ -520,8 +526,10 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.main_layout.addWidget(self.poly_label)
         self.main_layout.addWidget(self.editpoly_btn)
         self.main_layout.addWidget(self.resert_btn)
-        self.main_layout.addWidget(self.label_m)
+        self.main_layout.addWidget(self.bt_cenceterObj)
+        self.main_layout.addWidget(self.bt_world)
 
+        self.main_layout.addWidget(self.label_m)
         self.qhbox_modeling_a = QtWidgets.QGridLayout()
         self.qhbox_modeling_a.addWidget(self.remove_btn,0,0)
         self.qhbox_modeling_a.addWidget(self.cut_btn,0,1)
@@ -532,9 +540,6 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.qhbox_modeling_a.addWidget(self.Collapse_btn,3,0)
         self.main_layout.addLayout(self.qhbox_modeling_a)
 
-        self.main_layout.addWidget(self.Tr_label)
-        self.main_layout.addWidget(self.bt_cenceterObj)
-        self.main_layout.addWidget(self.bt_world)
         self.main_layout.addWidget(self.smoothing_lb)
         self.main_layout.addWidget(self.smoothing_btn)
         self.main_layout.addWidget(self.smoothing_plane_btn)
@@ -597,8 +602,7 @@ if __name__ == '__main__':
     main_window = qtmax.GetQMaxMainWindow()
     w = PyMaxDockWidget(parent=main_window)
     w.setFloating(True)
-    w.show()
+    w.setStyleSheet("QLabel { background-color: rgba(53,94,189,1) }")
+    w.setStyleSheet("QLabel {font-size:18 px}")
 
-    with open("style.qss", "r") as f:
-        _style = f.read()
-        w.setStyleSheet(_style)
+    w.show()
