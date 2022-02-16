@@ -1,0 +1,10 @@
+name "3dmaxMainTool"
+version 1.0
+
+copy "modeling_main.py" to "$scripts"
+
+copy "*.bmp" to "$usericons"
+
+run "3dmaxTool_macro.ms"
+
+clear temp on MAX exit

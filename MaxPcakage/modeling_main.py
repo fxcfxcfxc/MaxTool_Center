@@ -422,9 +422,6 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.TargetWeld_btn = QtWidgets.QPushButton("targetweld")
         self.TargetWeld_btn.clicked.connect(self.targetweld)
 
-        self.Collapse_btn = QtWidgets.QPushButton("collapse")
-        self.Collapse_btn.clicked.connect(self.collapse)
-
         self.smoothing_lb = QtWidgets.QLabel("Smoothing(光滑组)")
 
         self.smoothing_btn = QtWidgets.QPushButton("一键光滑组")
@@ -537,7 +534,6 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.qhbox_modeling_a.addWidget(self.Bevel_btn,1,1)
         self.qhbox_modeling_a.addWidget(self.SwiftLoop_btn,2,0)
         self.qhbox_modeling_a.addWidget(self.TargetWeld_btn,2,1)
-        self.qhbox_modeling_a.addWidget(self.Collapse_btn,3,0)
         self.main_layout.addLayout(self.qhbox_modeling_a)
 
         self.main_layout.addWidget(self.smoothing_lb)
