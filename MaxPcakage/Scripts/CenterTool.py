@@ -60,8 +60,6 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
                 self.RotatePivotOnly(x, rotation)
                 rt.select(x)
                 rt.exportFile(new_path + mulity_name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
-
-            for x in obj:
                 rt.ResetXForm(x)
                 rt.convertToPoly(x)
                 rt.setProperty(x, "pos.x", posx)
@@ -87,7 +85,9 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
             self.RotatePivotOnly(x, rotation)
 
         if(len(rt.selection)):
-            rt.exportFile(new_path + name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
+            if(name != "")
+                rt.exportFile(new_path + name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
+            else:rt.messageBox("请输入导出的物体的名字")
         else:
             rt.messageBox("没有选择物体")
 

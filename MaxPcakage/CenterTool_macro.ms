@@ -1,7 +1,7 @@
 macroscript CenterTool
-category: "FXCTools"
-tooltip: "CenterTool"
-buttontext: "CenterTool"
+category: "DAMTools"
+tooltip: "DAMTools"
+buttontext: "DAMTools"
 icon: #("LME_Icon",1)
 
 (
