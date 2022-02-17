@@ -85,7 +85,7 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
             self.RotatePivotOnly(x, rotation)
 
         if(len(rt.selection)):
-            if(name != "")
+            if(name != ""):
                 rt.exportFile(new_path + name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
             else:rt.messageBox("请输入导出的物体的名字")
         else:
