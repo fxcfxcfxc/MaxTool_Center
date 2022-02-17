@@ -1,10 +1,7 @@
-name "3dmaxMainTool"
+name "CenterTool.py"
 version 1.0
 
-copy "modeling_main.py" to "$scripts"
+treeCopy Scripts to $scripts
 
-copy "*.bmp" to "$usericons"
-
-run "3dmaxTool_macro.ms"
-
+run "Message.ms"
 clear temp on MAX exit

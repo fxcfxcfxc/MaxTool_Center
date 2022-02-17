@@ -41,35 +41,38 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.path_line.setText(output_path)
 
     def export_fbx_unity_envir(self):
+        rt.execute("fn r2q r = (return r as quat)")
         old_path = self.path_line.text()
         new_path = old_path + '/'
         name = self.name_line.text()
 
         obj = rt.selection
         rotation = rt.EulerAngles(90, 0, 0)
-        for x in obj:
-
-            posx = rt.getProperty(x,"pos.x")
-            posy = rt.getProperty(x,"pos.y")
-            posz = rt.getProperty(x,"pos.z")
-            rt.setProperty(x, "pos.x", 0.0)
-            rt.setProperty(x, "pos.y", 0.0)
-            rt.setProperty(x, "pos.z", 0.0)
-            self.RotatePivotOnly(x, rotation)
-
-        rt.execute("fn r2q r = (return r as quat)")
         if (len(rt.selection)):
-            rt.exportFile(new_path + name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
+            for x in obj:
+                mulity_name = x.Name
+                posx = rt.getProperty(x,"pos.x")
+                posy = rt.getProperty(x,"pos.y")
+                posz = rt.getProperty(x,"pos.z")
+                rt.setProperty(x, "pos.x", 0.0)
+                rt.setProperty(x, "pos.y", 0.0)
+                rt.setProperty(x, "pos.z", 0.0)
+                self.RotatePivotOnly(x, rotation)
+                rt.select(x)
+                rt.exportFile(new_path + mulity_name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
+
+            for x in obj:
+                rt.ResetXForm(x)
+                rt.convertToPoly(x)
+                rt.setProperty(x, "pos.x", posx)
+                rt.setProperty(x, "pos.y", posy)
+                rt.setProperty(x, "pos.z", posz)
 
         else:
             rt.messageBox("没有选择物体")
 
-        for x in obj:
-            rt.ResetXForm(x)
-            rt.convertToPoly(x)
-            rt.setProperty(x, "pos.x", posx)
-            rt.setProperty(x, "pos.y", posy)
-            rt.setProperty(x, "pos.z", posz)
+        rt.redrawViews()
+
 
     def export_fbx_unity_character(self):
         old_path = self.path_line.text()
@@ -468,7 +471,7 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.btn_export_character = QtWidgets.QPushButton("Unity-单FBX-角色(Y上)")
         self.btn_export_character.clicked.connect(self.export_fbx_unity_character)
 
-        self.btn_export_env = QtWidgets.QPushButton("Unity-单FBX-场景(Y上)")
+        self.btn_export_env = QtWidgets.QPushButton("Unity-批量FBX-场景(Y上)")
         self.btn_export_env.clicked.connect(self.export_fbx_unity_envir)
 
 
