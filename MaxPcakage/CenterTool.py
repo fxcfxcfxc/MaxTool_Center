@@ -50,7 +50,7 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         rotation = rt.EulerAngles(90, 0, 0)
         if (len(rt.selection)):
             for x in obj:
-                mulity_name = x.Name
+                mulity_name = "SM_" + x.Name
                 posx = rt.getProperty(x,"pos.x")
                 posy = rt.getProperty(x,"pos.y")
                 posz = rt.getProperty(x,"pos.z")

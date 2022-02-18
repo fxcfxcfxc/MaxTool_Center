@@ -1,9 +1,9 @@
 macroscript CenterTool
-category: "DAMTools"
-tooltip: "DAMTools"
-buttontext: "DAMTools"
+category: "DamMaxTools"
+tooltip: "CenterTool"
+buttontext: "CenterTool"
 icon: #("LME_Icon",1)
 
 (
-	python.ExecuteFile @"C:\MaxTools\CenterTool.py"
+	python.ExecuteFile @"C:\DamMaxTools\CenterTools\CenterTool.py"
 )
