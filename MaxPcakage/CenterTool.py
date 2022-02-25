@@ -57,7 +57,10 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
                 rt.setProperty(x, "pos.x", 0.0)
                 rt.setProperty(x, "pos.y", 0.0)
                 rt.setProperty(x, "pos.z", 0.0)
-                self.RotatePivotOnly(x, rotation)
+                if(self.check_enable_y_env.isChecked()):
+                    self.RotatePivotOnly(x, rotation)
+                else:
+                    pass
                 rt.select(x)
                 rt.exportFile(new_path + mulity_name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
                 rt.ResetXForm(x)
@@ -80,14 +83,20 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         obj = rt.selection
         rotation = rt.EulerAngles(90, 0, 0)
         rt.execute("fn r2q r = (return r as quat)")
-        for x in obj:
-            x.pivot = rt.Point3(0, 0, 0)
-            self.RotatePivotOnly(x, rotation)
-
         if(len(rt.selection)):
             if(name != ""):
+                for x in obj:
+                    x.pivot = rt.Point3(0, 0, 0)
+                    if (self.check_enable_y_character.isChecked()):
+                        self.RotatePivotOnly(x, rotation)
+                    else:
+                        pass
                 rt.exportFile(new_path + name, rt.name('noPrompt'), selectedOnly=True, using=rt.FBXEXP)
-            else:rt.messageBox("请输入导出的物体的名字")
+                for x in obj:
+                    rt.ResetXForm(x)
+                    rt.convertToPoly(x)
+            else:
+                rt.messageBox("请输入导出的物体的名字")
         else:
             rt.messageBox("没有选择物体")
 
@@ -468,14 +477,18 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.path_line = QtWidgets.QLineEdit()
         self.name_line = QtWidgets.QLineEdit()
 
-        self.btn_export_character = QtWidgets.QPushButton("Unity-单FBX-角色(Y上)")
+        self.check_enable_y_character = QtWidgets.QCheckBox("Y轴朝上")
+        self.check_enable_y_character.setChecked(True)
+        self.btn_export_character = QtWidgets.QPushButton("Unity-单FBX-角色")
         self.btn_export_character.clicked.connect(self.export_fbx_unity_character)
 
-        self.btn_export_env = QtWidgets.QPushButton("Unity-批量FBX-场景(Y上)")
+        self.check_enable_y_env = QtWidgets.QCheckBox("Y轴朝上")
+        self.check_enable_y_env.setChecked(True)
+        self.btn_export_env = QtWidgets.QPushButton("Unity-批量FBX-场景")
         self.btn_export_env.clicked.connect(self.export_fbx_unity_envir)
 
 
-        self.export_btn2 = QtWidgets.QPushButton("导出OBJ")
+        self.export_btn2 = QtWidgets.QPushButton("OBJ")
         self.export_btn2.clicked.connect(self.export_obj)
 
         self.label_import = QtWidgets.QLabel("Import(导入)")
@@ -570,8 +583,17 @@ class PyMaxDockWidget(QtWidgets.QDockWidget):
         self.main_layout2.setStretch(1, 1)
 
         self.main_layout.addLayout(self.main_layout2)
-        self.main_layout.addWidget(self.btn_export_character)
-        self.main_layout.addWidget(self.btn_export_env)
+
+        self.enable_y = QtWidgets.QHBoxLayout()
+        self.enable_y.addWidget(self.btn_export_character)
+        self.enable_y.addWidget(self.check_enable_y_character)
+        self.main_layout.addLayout(self.enable_y)
+
+        self.enable_y_chr = QtWidgets.QHBoxLayout()
+        self.enable_y_chr.addWidget(self.btn_export_env)
+        self.enable_y_chr.addWidget(self.check_enable_y_env)
+        self.main_layout.addLayout(self.enable_y_chr)
+
         self.main_layout.addWidget(self.export_btn2)
         self.main_layout.addWidget(self.label_import)
         self.main_layout.addWidget(self.bt_import)
